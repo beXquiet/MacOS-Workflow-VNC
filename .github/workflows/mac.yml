@@ -10,13 +10,22 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Setting the environment up.
+    - name: Setup, start ngrok, and keep session alive
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         VNC_USER_PASSWORD: ${{ secrets.VNC_USER_PASSWORD }}
         VNC_PASSWORD: ${{ secrets.VNC_PASSWORD }}
-      run: source configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" "$NGROK_AUTH_TOKEN"
-    - name: ngrok is now listening to VNC connections on...
-      run: curl --silent http://127.0.0.1:4040/api/tunnels | jq '.tunnels[0].public_url'
-    - name: Keep session alive
-      run: sleep 18000
+      run: |
+        source configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" "$NGROK_AUTH_TOKEN"
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          URL=$(curl --silent http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url // empty')
+          if [ -n "$URL" ]; then
+            echo "=================================================="
+            echo "VNC TUNNEL READY: $URL"
+            echo "=================================================="
+            break
+          fi
+          echo "waiting for ngrok tunnel... ($i)"
+          sleep 3
+        done
+        sleep 18000
