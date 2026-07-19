@@ -25,6 +25,10 @@ echo $2 | perl -we 'BEGIN { @k = unpack "C*", pack "H*", "1734516E8BA8C5E2FF1C39
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -restart -agent -console
 sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate
 
+#Fix black screen: restart loginwindow to get a real framebuffer
+sudo killall loginwindow
+sleep 3
+
 #install ngrok
 brew install --cask ngrok
 
