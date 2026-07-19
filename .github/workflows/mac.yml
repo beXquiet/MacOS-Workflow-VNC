@@ -18,6 +18,7 @@ jobs:
       run: |
         source configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" "$NGROK_AUTH_TOKEN" || true
         set +e
+        FOUND=0
         for i in 1 2 3 4 5 6 7 8 9 10; do
           RESP=$(curl --silent http://127.0.0.1:4040/api/tunnels 2>/dev/null)
           URL=$(echo "$RESP" | jq -r '.tunnels[0].public_url // empty' 2>/dev/null)
@@ -25,9 +26,16 @@ jobs:
             echo "=================================================="
             echo "VNC TUNNEL READY: $URL"
             echo "=================================================="
+            FOUND=1
             break
           fi
           echo "waiting for ngrok tunnel... ($i)"
           sleep 3
         done
+        if [ "$FOUND" -eq 0 ]; then
+          echo "=================================================="
+          echo "NGROK LOG CONTENTS:"
+          cat /tmp/ngrok.log 2>&1 || echo "no log file found"
+          echo "=================================================="
+        fi
         sleep 18000
