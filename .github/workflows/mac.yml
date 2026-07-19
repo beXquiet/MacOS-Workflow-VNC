@@ -16,9 +16,11 @@ jobs:
         VNC_USER_PASSWORD: ${{ secrets.VNC_USER_PASSWORD }}
         VNC_PASSWORD: ${{ secrets.VNC_PASSWORD }}
       run: |
-        source configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" "$NGROK_AUTH_TOKEN"
+        source configure.sh "$VNC_USER_PASSWORD" "$VNC_PASSWORD" "$NGROK_AUTH_TOKEN" || true
+        set +e
         for i in 1 2 3 4 5 6 7 8 9 10; do
-          URL=$(curl --silent http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url // empty')
+          RESP=$(curl --silent http://127.0.0.1:4040/api/tunnels 2>/dev/null)
+          URL=$(echo "$RESP" | jq -r '.tunnels[0].public_url // empty' 2>/dev/null)
           if [ -n "$URL" ]; then
             echo "=================================================="
             echo "VNC TUNNEL READY: $URL"
